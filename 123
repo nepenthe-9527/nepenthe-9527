@@ -1,0 +1,114 @@
+import time
+import random
+import matplotlib.pyplot as plt
+
+# 带有拓展功能的8位移位寄存器
+def niuhuan(data, shift_dir):
+    result = data
+    for i in range(8):
+        if shift_dir == "right":
+            result = (result >> 1) | ((result & 0x01) << 7)
+        else:
+            result = (result << 1) | ((result & 0x80) >> 7)
+    return result
+
+# 8位移位寄存器
+def shift(data, shift_dir):
+    result = data
+    for i in range(8):
+        if shift_dir == "right":
+            result = (result >> 1)
+        else:
+            result = (result << 1)
+    return result
+
+# 8位扭环移位寄存器
+def twistedringreg(data, shift_dir):
+    result = data
+    for i in range(8):
+        if shift_dir == "right":
+            result = ((result >> 1) | ((result & 0x01) << 7)) ^ ((result & 0x04) << 5)
+        else:
+            result = ((result << 1) | ((result & 0x80) >> 7)) ^ ((result & 0x10) << 3)
+    return result
+
+# 生成随机测试数据
+data = [random.randint(0, 255) for i in range(1000)]
+
+# 测试带有拓展功能的8位移位寄存器
+start_time = time.time()
+niuhuan_result = [niuhuan(d, "right") for d in data]
+niuhuan_time = time.time() - start_time
+
+# 测试8位移位寄存器
+start_time = time.time()
+shift_result = [shift(d, "right") for d in data]
+shift_time = time.time() - start_time
+
+# 测试8位扭环移位寄存器
+start_time = time.time()
+twistedringreg_result = [twistedringreg(d, "right") for d in data]
+twistedringreg_time = time.time() - start_time
+
+# 统计测试结果
+if niuhuan_time == 0:
+    niuhuan_throughput = 0
+    niuhuan_latency = 0
+    niuhuan_clock_cycle = 0
+else:
+    niuhuan_throughput = len(data) / niuhuan_time
+    niuhuan_latency = niuhuan_time / len(data)
+    niuhuan_clock_cycle = niuhuan_latency / 8
+
+if shift_time == 0:
+    shift_throughput = 0
+    shift_latency = 0
+    shift_clock_cycle = 0
+else:
+    shift_throughput = len(data) / shift_time
+    shift_latency = shift_time / len(data)
+    shift_clock_cycle = shift_latency / 8
+
+if twistedringreg_time == 0:
+   twistedringreg_throughput = 0
+   twistedringreg_latency = 0
+   twistedringreg_clock_cycle = 0
+else:
+   twistedringreg_throughput = len(data) / twistedringreg_time
+   twistedringreg_latency = twistedringreg_time / len(data)
+   twistedringreg_clock_cycle = twistedringreg_latency / 8
+
+print("带有拓展功能的8位移位寄存器的吞吐量为 {:.2f} MB/s，延迟为 {:.6f} s，时钟周期为 {:.9f} s".format(niuhuan_throughput/1e6, niuhuan_latency, niuhuan_clock_cycle))
+print("8位移位寄存器的吞吐量为 {:.2f} MB/s，延迟为 {:.6f} s，时钟周期为 {:.9f} s".format(shift_throughput/1e6, shift_latency, shift_clock_cycle))
+print("8位扭环移位寄存器的吞吐量为 {:.2f} MB/s，延迟为 {:.6f} s，时钟周期为 {:.9f} s".format(twistedringreg_throughput/1e6, twistedringreg_latency, twistedringreg_clock_cycle))
+# 绘制图表
+import matplotlib.pyplot as plt
+
+# 绘制模块与总时间对比图表
+labels = ['Extended Shift Register', 'Shift Register', 'Twisted Ring Register']
+times = [niuhuan_time, shift_time, twistedringreg_time, niuhuan_time+shift_time+twistedringreg_time]
+
+plt.pie(times, labels=labels, autopct='%.2f%%')
+plt.title('Total Execution Time Comparison')
+plt.show()
+
+# 绘制三个模块吞吐量对比图表
+throughputs = [len(data)/niuhuan_time, len(data)/shift_time, len(data)/twistedringreg_time]
+
+plt.bar(labels[:-1], throughputs)
+plt.title('Throughput Comparison')
+plt.show()
+
+# 绘制三个模块响应延迟的对比图表
+latencies = [niuhuan_time/len(data), shift_time/len(data), twistedringreg_time/len(data)]
+
+plt.bar(labels[:-1], latencies)
+plt.title('Response Delay Comparison')
+plt.show()
+
+# 绘制三个模块的时钟周期对比的图表
+clock_cycles = [niuhuan_time/len(data)/8, shift_time/len(data)/8, twistedringreg_time/len(data)/8]
+
+plt.bar(labels[:-1], clock_cycles)
+plt.title('Clock Cycle Comparison')
+plt.show()
